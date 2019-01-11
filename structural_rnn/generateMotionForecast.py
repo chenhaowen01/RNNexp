@@ -7,21 +7,24 @@ import sys
 
 # Inputs
 model = sys.argv[1]
-checkpoint = sys.argv[2]
+train_for = sys.argv[2]
+checkpoint = sys.argv[3]
 
 supported_model = ['srnn','lstm3lr','erd']
 if model not in supported_model:
     print 'Incorrect model, Supported models: ',supported_model
-    return 0
+    #return 0
 
 
 my_env = os.environ
 # Adding CUDA to path
 my_env['PATH'] += ':/usr/local/cuda/bin'
-my_env['THEANO_FLAGS']='mode=FAST_RUN,device=gpu0,floatX=float32'
+# my_env['THEANO_FLAGS']='mode=FAST_RUN,device=opencl0:0,floatX=float32'
+my_env['THEANO_FLAGS']='mode=FAST_RUN,floatX=float32'
 
 params = {}
 params['forecast'] = model
+params['train_for'] = train_for
 params['checkpoint'] = checkpoint
 
 params['motion_prefix'] = 50

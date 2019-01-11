@@ -31,6 +31,7 @@ nodeFeaturesRanges['left_leg'] = range(21,36)
 drop_right_knee = [9,10,11]
 
 def normalizationStats(completeData):
+	print('completeData.shape: ', completeData.shape)
 	data_mean = np.mean(completeData,axis=0)
 	data_std =  np.std(completeData,axis=0)
 	dimensions_to_ignore = [] 
@@ -205,8 +206,10 @@ def getfeatures(nodeName,edgeType,nodeConnections,nodeNames,forecast_on_noisy_fe
 	return train_features, validate_features, forecast_features
 		
 def getDRAfeatures(nodeName,edgeType,nodeConnections,nodeNames,features_to_use,features_to_use_t_1):
+	print('temporal_features: ', temporal_features)
 	if edgeType.split('_')[1] == 'input':
 		if temporal_features:
+			print('use temporal_features')
 			return np.concatenate((features_to_use[nodeName],features_to_use[nodeName] - features_to_use_t_1[nodeName]),axis=2)
 		else:
 			return features_to_use[nodeName]
@@ -256,7 +259,7 @@ def cherryPickNodeFeatures(data3DTensor):
 			if x not in dimensions_to_ignore:
 				filterList.append(x)
 		Features[nm] = data3DTensor[:,:,filterList]
-	return Features	
+	return Features
 
 def ignoreZeroVarianceFeatures(data3DTensor):
 	D = data3DTensor.shape[2]
@@ -292,6 +295,7 @@ def loadTrainData(subjects):
 def generateForecastingExamples(trainData,prefix,suffix,subject):
 	N = 4*len(actions)*len(subactions)
 	D = trainData[(subject,actions[0],subactions[0])].shape[1]
+	print('trainData[(subject,actions[0],subactions[0])].shape: ', trainData[(subject,actions[0],subactions[0])].shape)
 	trX = np.zeros((prefix,N,D),dtype=np.float32)
 	trX_t_1 = np.zeros((prefix,N,D),dtype=np.float32)
 	trY = np.zeros((suffix,N,D),dtype=np.float32)
@@ -316,6 +320,7 @@ def generateForecastingExamples(trainData,prefix,suffix,subject):
 	toget = num_forecast_examples
 	if toget > count:
 		toget = count
+	print('normalizeTensor(trY[:,:toget,:]).shape: ', normalizeTensor(trY[:,:toget,:]).shape)
 	return normalizeTensor(trX[:,:toget,:]),normalizeTensor(trX_t_1[:,:toget,:]),normalizeTensor(trY[:,:toget,:]),forecastidx
 
 def addNoiseMalik(X_old,noise=1e-5):
@@ -338,7 +343,10 @@ def getMalikValidationFeatures(noise=1e-5):
 
 def getMalikTrajectoryForecasting(noise=1e-5):
 	return trX_forecast_malik,trY_forecast_malik
-	
+
+def getMalikTrajectoryForecastingFull(noise=1e-5):
+	return trX_forecast,trY_forecast
+
 #Keep T fixed, and tweak delta_shift in order to generate less/more examples
 T=150
 delta_shift= T - 50
@@ -383,10 +391,10 @@ def runall():
 		trainSubjects = ['S1','S6','S7','S8','S9','S11']
 		validateSubject = ['S5']
 		actions = ['discussion']
-	if train_for == 'walkingdog':
+	if train_for == 'walking':
 		trainSubjects = ['S1','S6','S7','S8','S9','S11']
 		validateSubject = ['S5']
-		actions = ['walkingdog']
+		actions = ['walking']
 #Load training and validation data
 	[trainData,completeData]=loadTrainData(trainSubjects)
 	[validateData,completeValidationData]=loadTrainData(validateSubject)
@@ -437,6 +445,21 @@ def runall():
 	validate_malikPredictFeatures = ignoreZeroVarianceFeatures(validateY3Dtensor)
 	trX_forecast_malik = ignoreZeroVarianceFeatures(trX_forecast)
 	trY_forecast_malik = ignoreZeroVarianceFeatures(trY_forecast)
+
+	# import pickle
+	# with open('gt.pkl') as f:
+	# 	trX_forecast = pickle.load(f)
+	# with open('features.pkl') as f:
+	# 	forecast_nodeFeatures = pickle.load(f)
+	# with open('stat.pkl') as f:
+	# 	stat = pickle.load(f)
+	# 	data_mean = stat['mean']
+	# 	data_std = stat['std']
+	# 	dimensions_to_ignore = stat['ignore']
+	# 	new_idx = stat['new_idx']
+	# 	data_stats['mean'] = data_mean
+	# 	data_stats['std'] = data_std
+	# 	data_stats['ignore_dimensions'] = dimensions_to_ignore
 
 def randomdropFeaturesfromData(datatensor,drop_id):
 	print 'Dropping features from training set'

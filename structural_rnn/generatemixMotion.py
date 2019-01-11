@@ -7,7 +7,7 @@ from datetime import datetime
 my_env = os.environ
 # Adding CUDA to path
 my_env['PATH'] += ':/usr/local/cuda/bin'
-my_env['THEANO_FLAGS']='mode=FAST_RUN,device=gpu0,floatX=float32'
+my_env['THEANO_FLAGS']='mode=FAST_RUN,floatX=float32'
 
 params = {}
 params['forecast'] = 'dra'
